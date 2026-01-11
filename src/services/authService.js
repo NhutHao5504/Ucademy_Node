@@ -4,6 +4,23 @@ const { createToken } = require('./jwtService');
 
 const registerUser = async (email, password, name) => {
     try {
+        // 0. Validate input
+        if (!email || !password || !name) {
+            return {
+                errCode: 1,
+                message: 'Vui lòng nhập đầy đủ thông tin'
+            };
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return { errCode: 1, message: 'Email không đúng định dạng' };
+        }
+
+        if (password.length < 6) {
+            return { errCode: 1, message: 'Mật khẩu phải có ít nhất 6 ký tự' };
+        }
+
         // 1. Check if user exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -35,6 +52,18 @@ const registerUser = async (email, password, name) => {
 
 const loginUser = async (email, password) => {
     try {
+        if (!email || !password) {
+            return {
+                errCode: 1,
+                message: 'Vui lòng nhập email và mật khẩu'
+            };
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return { errCode: 1, message: 'Email không đúng định dạng' };
+        }
+
         const user = await User.findOne({ email });
         if (user && await bcrypt.compare(password, user.password)) {
             const payload = { id: user._id, email: user.email, role: user.role };
